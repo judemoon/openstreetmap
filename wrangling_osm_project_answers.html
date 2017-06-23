@@ -12103,7 +12103,7 @@ set([&#39;his:1973-:power&#39;])
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="2.-Problems-Encountered-in-the-Map_part1">2. Problems Encountered in the Map_part1<a class="anchor-link" href="#2.-Problems-Encountered-in-the-Map_part1">&#182;</a></h1><h2 id="The-first-glance">The first glance<a class="anchor-link" href="#The-first-glance">&#182;</a></h2><ul>
+<h1 id="2.-Problems-Encountered-in-the-Map">2. Problems Encountered in the Map<a class="anchor-link" href="#2.-Problems-Encountered-in-the-Map">&#182;</a></h1><ul>
 <li><p>Uppercase tag keys: I changed regex to match uppercase as well as lowercase</p>
 
 <pre><code>  NHD:ComID</code></pre>
@@ -12116,7 +12116,9 @@ set([&#39;his:1973-:power&#39;])
 </li>
 <li><p>Two colons in the keys: I changed regex to match one or more colons, so first word before the first colon becomes 'type' key and the rest of string becomes 'key'</p>
 
-<pre><code>  destination:ref:to -&gt; {'type':'destination', 'key':'ref:to'}</code></pre>
+<pre><code>  destination:ref:to -&gt; {'type':'destination', 'key':'ref:to'}
+
+  The benefit of this change is that we can analyze and make summary on nested key levels. But anticipated issues would be that too many nested keys can be unique keys that will not help to summarize any meaningful information, but increase noise on the data.</code></pre>
 </li>
 </ul>
 
@@ -12242,7 +12244,45 @@ thai|1
 vegetarian|1
 </code></pre>
 <hr>
-<h1 id="5.-Additional-Ideas">5. Additional Ideas<a class="anchor-link" href="#5.-Additional-Ideas">&#182;</a></h1><h2 id="Post-Codes:">Post Codes:<a class="anchor-link" href="#Post-Codes:">&#182;</a></h2><p>sqlite&gt; SELECT tags.value, COUNT(<em>) as count<br>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="5.-Other-ideas-about-the-dataset">5. Other ideas about the dataset<a class="anchor-link" href="#5.-Other-ideas-about-the-dataset">&#182;</a></h1><p>The map data in Blacksburg area were relatively clean overall, but as I looked into summary of columns, there were marginal errors (see other problems).</p>
+<p>One thing that I am suspicious about the map data is no postal code of 24061 which is Virginia Tech zip code. Because Blacksburg is Virginia Tech driven town, I would think that there is a good number of nodes associated with the University (about 400). But I found one zip code of 24061-9517, so this totally doesn't make sense. Plus, the total number of postal code info (about 100) is very small with the population of 8 million. This could have happened because users input the address without postal code or they don't separate it into a tag for postal code.</p>
+<p>This could be solved by having users' rules or instructions that show requirements of fields and if it does not include all the required information, notify the users or show a red flag of incomplete inputs.</p>
+<h2 id="other-problems">other problems<a class="anchor-link" href="#other-problems">&#182;</a></h2><ul>
+<li><p>Inconsistency in Postal code</p>
+
+<pre><code>  24060-3348|1
+  24061-9517|1
+  VA 24060|1</code></pre>
+</li>
+</ul>
+<ul>
+<li><p>Numbers in city name</p>
+
+<pre><code>  10|9
+  14|9
+  22|6
+  24|6</code></pre>
+</li>
+<li><p>Inconsistency of case in city name</p>
+
+<pre><code>  CHRISTIANSBURG|2
+  christiansburg|2</code></pre>
+</li>
+<li><p>Wrong category in city name</p>
+
+<pre><code>  Virginia|2</code></pre>
+</li>
+</ul>
+<h3 id="Post-Codes:">Post Codes:<a class="anchor-link" href="#Post-Codes:">&#182;</a></h3><p>sqlite&gt; SELECT tags.value, COUNT(<em>) as count<br>
 FROM (SELECT </em> FROM nodes_tags<br>
       UNION ALL<br>
       SELECT * FROM ways_tags) tags<br>
@@ -12257,7 +12297,7 @@ ORDER BY count DESC;</p>
 VA 24060|1
 </code></pre>
 <hr>
-<h2 id="Cities:">Cities:<a class="anchor-link" href="#Cities:">&#182;</a></h2><p>sqlite&gt; SELECT tags.value, COUNT(<em>) as count<br>
+<h3 id="Cities:">Cities:<a class="anchor-link" href="#Cities:">&#182;</a></h3><p>sqlite&gt; SELECT tags.value, COUNT(<em>) as count<br>
 FROM (SELECT </em> FROM nodes_tags UNION ALL<br>
       SELECT * FROM ways_tags) tags<br>
 WHERE tags.key LIKE '%city'<br>
@@ -12289,42 +12329,15 @@ christiansburg|2
 
 </code></pre>
 <hr>
-<h2 id="Operator-by-Virginia-Tech:">Operator by Virginia Tech:<a class="anchor-link" href="#Operator-by-Virginia-Tech:">&#182;</a></h2><p>sqlite&gt; SELECT nodes_tags.key, nodes_tags.value, COUNT(*) 
+<h3 id="Operator-by-Virginia-Tech:">Operator by Virginia Tech:<a class="anchor-link" href="#Operator-by-Virginia-Tech:">&#182;</a></h3><p>sqlite&gt; SELECT nodes_tags.key, nodes_tags.value, COUNT(*) 
 FROM nodes_tags JOIN nodes 
 ON nodes_tags.id=nodes.id
 WHERE (nodes_tags.key= 'operator') and (nodes_tags.value='Virginia Tech');</p>
 
 <pre><code>    operator|Virginia Tech|400
 
-
 </code></pre>
 <hr>
-<h1 id="6.-Problems-Encountered-in-the-Map_part2">6. Problems Encountered in the Map_part2<a class="anchor-link" href="#6.-Problems-Encountered-in-the-Map_part2">&#182;</a></h1><h2 id="The-second-glance">The second glance<a class="anchor-link" href="#The-second-glance">&#182;</a></h2><ul>
-<li><p>Inconsistency in Postal code</p>
-
-<pre><code>  24060-3348|1
-  24061-9517|1
-  VA 24060|1</code></pre>
-</li>
-</ul>
-<ul>
-<li><p>Numbers in city name</p>
-
-<pre><code>  10|9
-  14|9
-  22|6
-  24|6</code></pre>
-</li>
-<li><p>Inconsistency of case in city name</p>
-
-<pre><code>  CHRISTIANSBURG|2
-  christiansburg|2</code></pre>
-</li>
-<li><p>Wrong category in city name</p>
-
-<pre><code>  Virginia|2</code></pre>
-</li>
-</ul>
 
 </div>
 </div>
@@ -12334,17 +12347,8 @@ WHERE (nodes_tags.key= 'operator') and (nodes_tags.value='Virginia Tech');</p>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="7.-Conclusion">7. Conclusion<a class="anchor-link" href="#7.-Conclusion">&#182;</a></h1><p>The map data in Blacksburg area were relatively clean overall, but as I looked into summary of columns, there were marginal errors (see 5_part2). One thing that I am suspicious about the map data is no postal code of 24061 which is Virginia Tech zip code. Because Blacksburg is Virginia Tech driven town, I would think that there is a good number of nodes associated with the University (about 400). But I found one zip code of 24061-9517, so this totally doesn't make sense. Plus, the total number of postal code info (about 100) is very small with the population of 8 million. This could have happened because users input the address without postal code or they don't separate it into a tag for postal code.</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="8.-Files">8. Files<a class="anchor-link" href="#8.-Files">&#182;</a></h1><ul>
+<h1 id="6.-Conclusion">6. Conclusion<a class="anchor-link" href="#6.-Conclusion">&#182;</a></h1><p>Wrangling dataset on the open street map of Blacksburg was interesting process. But I would be more vigorously investigate the dataset if I had particular questions about the data up front. It is hard to tell why I need to wrangle this dataset, what kind of information I need to extract, and which keys and values I should spend more time to investigate. The vague idea of improving the dataset overall was not helpful. If I do this process next time, I will make clear goals in uses of database I am working on.</p>
+<h1 id="7.-Files">7. Files<a class="anchor-link" href="#7.-Files">&#182;</a></h1><ul>
 <li>bburg_map.xml: osm file renamed with xml extension</li>
 <li>audit.py: modularized py script including procedures used in this Jupyter Notebook</li>
 <li>process.py: standalone py script parsing/cleaning/shaping and converting document tree to 5 separated csv files</li>
@@ -12354,7 +12358,7 @@ WHERE (nodes_tags.key= 'operator') and (nodes_tags.value='Virginia Tech');</p>
 <li>wrangling_osm_project_answers.html: html version of this document</li>
 <li>wrangling_osm_project_answers.pdf: pdf printed of html answer file</li>
 </ul>
-<h1 id="9.-Sources">9. Sources<a class="anchor-link" href="#9.-Sources">&#182;</a></h1><ul>
+<h1 id="8.-Sources">8. Sources<a class="anchor-link" href="#8.-Sources">&#182;</a></h1><ul>
 <li>osm documentation: <a href="https://wiki.openstreetmap.org/wiki/Main_Page">https://wiki.openstreetmap.org/wiki/Main_Page</a></li>
 <li>unzip osm file: <a href="http://www.e7z.org/open-bz2-bzip2.htm">http://www.e7z.org/open-bz2-bzip2.htm</a></li>
 <li>ET.iterparse, root.clear: <a href="http://effbot.org/zone/element-iterparse.htm">http://effbot.org/zone/element-iterparse.htm</a></li>
